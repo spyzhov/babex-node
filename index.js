@@ -69,7 +69,7 @@ class Service {
     }
 
     listen(callback) {
-        return this.channel.consume(queue, function (delivery) {
+        return this.channel.consume(this.name, function (delivery) {
             if (delivery === null) {
                 return;
             }
