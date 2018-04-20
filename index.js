@@ -90,7 +90,8 @@ class Service {
         return this.channel.publish(exchange, key, new Buffer(JSON.stringify({data, chain})), {headers});
     }
 
-    next(message, payload, headers = {}) {
+    next(message, payload, headers) {
+        headers = headers || message.headers || {};
         return Promise
             .resolve()
             .then(() => this.channel.ack(message.delivery))
