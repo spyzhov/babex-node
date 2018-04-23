@@ -11,16 +11,12 @@ const serviceConfig = {
 };
 
 class Service {
-    singleOptions = {
-        exclusive: true,
-        autoDelete: true,
-    };
-
     constructor(config) {
         this.config = config;
         this.name = config.isSingle ? `${config.name}.${nanoid()}` : config.name;
         this.connection = null;
         this.channel = null;
+        this.options = config.isSingle ? {exclusive: true, autoDelete: true} : {};
     }
 
     connect() {
@@ -33,14 +29,8 @@ class Service {
 
                 return this.connection
                     .createChannel()
-                    .then((channel) => {
-                        this.channel = channel;
-                    })
-                    .then(() => this.config.skipDeclareQueue || Promise
-                        .resolve()
-                        .then(() => this.config.isSingle ? this.singleOptions : {})
-                        .then((options) => this.channel.assertQueue(this.name, options))
-                    );
+                    .then((channel) => this.channel = channel)
+                    .then(() => this.config.skipDeclareQueue || this.channel.assertQueue(this.name, this.options));
             })
             .then(() => console.log((new Date()) + ` Babex: waiting for messages on ${this.name}`))
             .then(() => this);
