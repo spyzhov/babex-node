@@ -1,5 +1,7 @@
 const amqp = require('amqplib');
 const nanoid = require('nanoid');
+const errors = require('./src/errors');
+const {Message} = require('./src/message');
 
 const serviceConfig = {
     name: "",
@@ -7,39 +9,13 @@ const serviceConfig = {
     isSingle: true,
     skipDeclareQueue: false,
 };
-const errors = {
-    ErrorNextIsNotDefined: 'ErrorNextIsNotDefined',
-    ErrorDataIsNotArray: 'ErrorDataIsNotArray',
-};
-
-class ChainItem {
-    constructor(item) {
-        this.successful = !!item.successful;
-        this.isMultiple = !!item.isMultiple;
-        this.exchange = item.exchange.toString();
-        this.key = item.key.toString();
-    }
-}
-
-class Message {
-    constructor(channel, delivery) {
-        this.channel = channel;
-        this.delivery = delivery;
-        this.payload = JSON.parse(this.delivery.content.toString());
-        this.data = this.payload.data;
-        this.chain = this.payload.chain;
-        this.headers = this.delivery.properties.headers || {};
-        this.chain.forEach((item) => new ChainItem(item));
-    }
-
-    ack() {
-        return Promise
-            .resolve()
-            .then(() => this.channel.ack(this.delivery));
-    }
-}
 
 class Service {
+    singleOptions = {
+        exclusive: true,
+        autoDelete: true,
+    };
+
     constructor(config) {
         this.config = config;
         this.name = config.isSingle ? `${config.name}.${nanoid()}` : config.name;
@@ -50,19 +26,21 @@ class Service {
     connect() {
         console.log((new Date()) + ` Babex: Try to connect to ${this.config.address}`);
         return amqp.connect(this.config.address)
-            .then((conn) => {
-                this.connection = conn;
+            .then((connection) => {
+                this.connection = connection;
                 process.once('SIGINT', () => this.connection.close());
                 console.log((new Date()) + ` Babex: connected to ${this.config.address}`);
 
                 return this.connection
                     .createChannel()
-                    .then((ch) => {
-                        this.channel = ch;
-                        if (!this.config.skipDeclareQueue) {
-                            return this.channel.then(() => this.channel.assertQueue(this.name));
-                        }
-                    });
+                    .then((channel) => {
+                        this.channel = channel;
+                    })
+                    .then(() => this.config.skipDeclareQueue || Promise
+                        .resolve()
+                        .then(() => this.config.isSingle ? this.singleOptions : {})
+                        .then((options) => this.channel.assertQueue(this.name, options))
+                    );
             })
             .then(() => console.log((new Date()) + ` Babex: waiting for messages on ${this.name}`))
             .then(() => this);
@@ -73,7 +51,7 @@ class Service {
             if (delivery === null) {
                 return;
             }
-            console.log((new Date()) + ' Receive message: ' + delivery.content.toString());
+            console.log((new Date()) + ' Babex: receive message: ' + delivery.content.toString());
             return Promise
                 .resolve(delivery)
                 .then((delivery) => new Message(this.channel, delivery))
@@ -82,12 +60,19 @@ class Service {
     }
 
     bindToExchange(exchange, key) {
-        return this.channel.bindQueue(this.name, exchange, key);
+        console.log((new Date()) + ` Babex: bind to exchange ${exchange}:${key}`);
+        return Promise
+            .resolve()
+            .then(() => this.channel.bindQueue(this.name, exchange, key))
+            .then(() => this);
     }
 
     publishMessage(exchange, key, chain = {}, data = {}, headers = {}) {
         console.log((new Date()) + ` Babex: publish message to ${exchange}:${key}`);
-        return this.channel.publish(exchange, key, new Buffer(JSON.stringify({data, chain})), {headers});
+        return Promise
+            .resolve()
+            .then(() => this.channel.publish(exchange, key, new Buffer(JSON.stringify({data, chain})), {headers}))
+            .then(() => this);
     }
 
     next(message, payload, headers) {
@@ -126,7 +111,8 @@ class Service {
                     promises.push(this.publishMessage(next.exchange, next.key, message.chain, payload, headers));
                 }
                 return Promise.all(promises);
-            });
+            })
+            .then(() => this);
     }
 }
 
