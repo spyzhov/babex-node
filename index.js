@@ -37,7 +37,7 @@ class Service {
     }
 
     listen(callback) {
-        return this.channel.consume(this.name, function (delivery) {
+        return this.channel.consume(this.name, (delivery) => {
             if (delivery === null) {
                 return;
             }
