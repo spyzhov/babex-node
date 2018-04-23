@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/spyzhov/babex-node/issues"
   },
-  "homepage": "https://github.com/spyzhov/babex-node#readme"
+  "homepage": "https://github.com/spyzhov/babex-node#readme",
+  "dependencies": {
+    "amqplib": "0.5.2",
+    "nanoid": "1.0.2"
+  }
 }
