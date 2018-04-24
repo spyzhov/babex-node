@@ -1,6 +1,16 @@
 const {Path} = require('./path');
 
+/**
+ * Base message
+ */
 class Message {
+
+    /**
+     * Create new message from channel data and delivery message
+     *
+     * @param channel
+     * @param delivery
+     */
     constructor(channel, delivery) {
         this.channel = channel;
         this.delivery = delivery;
@@ -10,6 +20,11 @@ class Message {
         this.headers = this.delivery.properties.headers || {};
     }
 
+    /**
+     * Mark ACK on current message
+     *
+     * @returns {Promise.<TResult>}
+     */
     ack() {
         return Promise
             .resolve()

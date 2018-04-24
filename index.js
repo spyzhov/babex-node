@@ -8,6 +8,12 @@ const serviceConfig = {
     skipDeclareQueue: false,
 };
 
+/**
+ * Create new service, with instant connect.
+ *
+ * @param config
+ * @returns {Promise.<Service>}
+ */
 function newService(config) {
     return new Service(config).connect();
 }

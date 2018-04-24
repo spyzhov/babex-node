@@ -1,9 +1,18 @@
+/**
+ * Path to the service
+ */
 class Path {
+
+    /**
+     * Create new path to the service
+     *
+     * @param item
+     */
     constructor(item) {
-        this.successful = !!item.successful;
-        this.isMultiple = !!item.isMultiple;
-        this.exchange = item.exchange.toString();
-        this.key = item.key.toString();
+        this.successful = Boolean(item.successful);
+        this.isMultiple = Boolean(item.isMultiple);
+        this.exchange = String(item.exchange);
+        this.key = String(item.key);
     }
 }
 

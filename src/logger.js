@@ -1,4 +1,9 @@
-
+/**
+ * Logger function
+ *
+ * @param level
+ * @returns {function(*): *}
+ */
 function get_logger(level) {
     return (message) => console[level](`${new Date()} Babex: ${message}`);
 }
@@ -9,4 +14,5 @@ module.exports = {
     warn: get_logger('warn'),
     error: get_logger('error'),
     debug: get_logger('debug'),
+    get_logger
 };

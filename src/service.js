@@ -4,7 +4,16 @@ const {Message} = require('./message');
 const errors = require('./errors');
 const logger = require('./logger');
 
+/**
+ * Babex service
+ */
 class Service {
+
+    /**
+     * Create enw Babex service
+     *
+     * @param config
+     */
     constructor(config) {
         this.config = config;
         this.name = config.isSingle ? `${config.name}.${nanoid()}` : config.name;
@@ -13,6 +22,11 @@ class Service {
         this.options = config.isSingle ? {exclusive: true, autoDelete: true} : {};
     }
 
+    /**
+     * Connect to Ampq and update all references
+     *
+     * @returns {Promise.<Service>}
+     */
     connect() {
         logger.log(`Try to connect to ${this.config.address}`);
         return amqp.connect(this.config.address)
@@ -30,6 +44,12 @@ class Service {
             .then(() => this);
     }
 
+    /**
+     * Execute user function on det message from Ampq.
+     *
+     * @param callback Function with argument Message
+     * @returns {*}
+     */
     listen(callback) {
         return this.channel.consume(this.name, (delivery) => {
             if (delivery === null) {
@@ -43,6 +63,13 @@ class Service {
         });
     }
 
+    /**
+     * Bind key to exchange, for current service/queue name
+     *
+     * @param exchange String
+     * @param key String
+     * @returns {Promise.<Service>}
+     */
     bindToExchange(exchange, key) {
         logger.log(`bind to exchange ${exchange}:${key}`);
         return Promise
@@ -51,6 +78,16 @@ class Service {
             .then(() => this);
     }
 
+    /**
+     * Custom push message in Babex style
+     *
+     * @param exchange String
+     * @param key String
+     * @param chain Chain
+     * @param data Any
+     * @param headers Object
+     * @returns {Promise.<Service>}
+     */
     publishMessage(exchange, key, chain = {}, data = {}, headers = {}) {
         logger.log(`publish message to ${exchange}:${key}`);
         return Promise
@@ -59,11 +96,19 @@ class Service {
             .then(() => this);
     }
 
+    /**
+     * Send message to the next service in chain
+     *
+     * @param message Message
+     * @param payload
+     * @param headers
+     * @returns {Promise.<Service>}
+     */
     next(message, payload, headers) {
         headers = headers || message.headers || {};
         return Promise
             .resolve()
-            .then(() => this.channel.ack(message.delivery))
+            .then(() => message.ack())
             .then(() => message.chain.find((value) => !value.successful))
             .then((value) => {
                 if (!value) {
