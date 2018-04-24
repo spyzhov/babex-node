@@ -35,7 +35,7 @@ class Service {
             if (delivery === null) {
                 return;
             }
-            logger.log('receive message: ' + delivery.content.toString());
+            logger.log(`receive message: ${delivery.content.toString()}`);
             return Promise
                 .resolve(delivery)
                 .then((delivery) => new Message(this.channel, delivery))
