@@ -67,18 +67,18 @@ class Service {
             .then(() => message.chain.find((value) => !value.successful))
             .then((value) => {
                 if (!value) {
-                    throw errors.ErrorNextIsNotDefined;
+                    return Promise.reject(errors.ErrorNextIsNotDefined);
                 }
                 let index = message.chain.indexOf(value);
                 if (index < 0 || message.chain.length <= index + 1) {
-                    throw errors.ErrorNextIsNotDefined;
+                    return Promise.reject(errors.ErrorNextIsNotDefined);
                 }
                 message.chain[index].successful = true;
                 return message.chain[index + 1];
             })
             .then((next) => {
                 if (!next || !next.exchange || !next.key) {
-                    throw errors.ErrorNextIsNotDefined;
+                    return Promise.reject(errors.ErrorNextIsNotDefined);
                 }
                 return next;
             })
@@ -86,7 +86,7 @@ class Service {
                 let promises = [];
                 if (next.isMultiple) {
                     if (!Array.isArray(payload)) {
-                        throw errors.ErrorDataIsNotArray;
+                        return Promise.reject(errors.ErrorDataIsNotArray);
                     }
                     for (let i = 0; i < payload.length; i++) {
                         promises.push(this.publishMessage(next.exchange, next.key, message.chain, payload[i], headers));
