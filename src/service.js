@@ -1,7 +1,8 @@
 const amqp = require('amqplib');
 const nanoid = require('nanoid');
-const {Message} = require('./src/message');
-const errors = require('./src/errors');
+const {Message} = require('./message');
+const errors = require('./errors');
+const logger = require('./logger');
 
 class Service {
     constructor(config) {
@@ -13,19 +14,19 @@ class Service {
     }
 
     connect() {
-        console.log((new Date()) + ` Babex: Try to connect to ${this.config.address}`);
+        logger.log(`Try to connect to ${this.config.address}`);
         return amqp.connect(this.config.address)
             .then((connection) => {
                 this.connection = connection;
                 process.once('SIGINT', () => this.connection.close());
-                console.log((new Date()) + ` Babex: connected to ${this.config.address}`);
+                logger.log(`connected to ${this.config.address}`);
 
                 return this.connection
                     .createChannel()
                     .then((channel) => this.channel = channel)
                     .then(() => this.config.skipDeclareQueue || this.channel.assertQueue(this.name, this.options));
             })
-            .then(() => console.log((new Date()) + ` Babex: waiting for messages on ${this.name}`))
+            .then(() => logger.log(`waiting for messages on ${this.name}`))
             .then(() => this);
     }
 
@@ -34,7 +35,7 @@ class Service {
             if (delivery === null) {
                 return;
             }
-            console.log((new Date()) + ' Babex: receive message: ' + delivery.content.toString());
+            logger.log('receive message: ' + delivery.content.toString());
             return Promise
                 .resolve(delivery)
                 .then((delivery) => new Message(this.channel, delivery))
@@ -43,7 +44,7 @@ class Service {
     }
 
     bindToExchange(exchange, key) {
-        console.log((new Date()) + ` Babex: bind to exchange ${exchange}:${key}`);
+        logger.log(`bind to exchange ${exchange}:${key}`);
         return Promise
             .resolve()
             .then(() => this.channel.bindQueue(this.name, exchange, key))
@@ -51,7 +52,7 @@ class Service {
     }
 
     publishMessage(exchange, key, chain = {}, data = {}, headers = {}) {
-        console.log((new Date()) + ` Babex: publish message to ${exchange}:${key}`);
+        logger.log(`publish message to ${exchange}:${key}`);
         return Promise
             .resolve()
             .then(() => this.channel.publish(exchange, key, new Buffer(JSON.stringify({data, chain})), {headers}))
