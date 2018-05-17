@@ -2,7 +2,6 @@ const amqp = require('amqplib');
 const nanoid = require('nanoid');
 const {Message} = require('./message');
 const errors = require('./errors');
-const logger = require('./logger');
 
 /**
  * Babex service
@@ -20,6 +19,7 @@ class Service {
         this.connection = null;
         this.channel = null;
         this.options = config.isSingle ? {exclusive: true, autoDelete: true} : {};
+        this.logger = config.logger;
     }
 
     /**
@@ -28,19 +28,19 @@ class Service {
      * @returns {Promise.<Service>}
      */
     connect() {
-        logger.log(`Try to connect to ${this.config.address}`);
+        this.log(`Try to connect to ${this.config.address}`);
         return amqp.connect(this.config.address)
             .then((connection) => {
                 this.connection = connection;
                 process.once('SIGINT', () => this.connection.close());
-                logger.log(`connected to ${this.config.address}`);
+                this.log(`connected to ${this.config.address}`);
 
                 return this.connection
                     .createChannel()
                     .then((channel) => this.channel = channel)
                     .then(() => this.config.skipDeclareQueue || this.channel.assertQueue(this.name, this.options));
             })
-            .then(() => logger.log(`waiting for messages on ${this.name}`))
+            .then(() => this.log(`waiting for messages on ${this.name}`))
             .then(() => this);
     }
 
@@ -55,7 +55,7 @@ class Service {
             if (delivery === null) {
                 return;
             }
-            logger.log(`receive message: ${delivery.content.toString()}`);
+            this.log(`receive message: ${delivery.content.toString()}`);
             return Promise
                 .resolve(delivery)
                 .then((delivery) => new Message(this.channel, delivery))
@@ -71,7 +71,7 @@ class Service {
      * @returns {Promise.<Service>}
      */
     bindToExchange(exchange, key) {
-        logger.log(`bind to exchange ${exchange}:${key}`);
+        this.log(`bind to exchange ${exchange}:${key}`);
         return Promise
             .resolve()
             .then(() => this.channel.bindQueue(this.name, exchange, key))
@@ -86,13 +86,14 @@ class Service {
      * @param chain Chain
      * @param data Any
      * @param headers Object
+     * @param config Any
      * @returns {Promise.<Service>}
      */
-    publishMessage(exchange, key, chain = {}, data = {}, headers = {}) {
-        logger.log(`publish message to ${exchange}:${key}`);
+    publishMessage(exchange, key, chain = {}, data = {}, headers = {}, config = null) {
+        this.log(`publish message to ${exchange}:${key}`);
         return Promise
             .resolve()
-            .then(() => this.channel.publish(exchange, key, new Buffer(JSON.stringify({data, chain})), {headers}))
+            .then(() => this.channel.publish(exchange, key, new Buffer(JSON.stringify({data, chain, config})), {headers}))
             .then(() => this);
     }
 
@@ -134,14 +135,34 @@ class Service {
                         return Promise.reject(errors.ErrorDataIsNotArray);
                     }
                     for (let i = 0; i < payload.length; i++) {
-                        promises.push(this.publishMessage(next.exchange, next.key, message.chain, payload[i], headers));
+                        promises.push(this.publishMessage(
+                            next.exchange,
+                            next.key,
+                            message.chain,
+                            payload[i],
+                            headers,
+                            message.config
+                        ));
                     }
                 } else {
-                    promises.push(this.publishMessage(next.exchange, next.key, message.chain, payload, headers));
+                    promises.push(this.publishMessage(
+                        next.exchange,
+                        next.key,
+                        message.chain,
+                        payload,
+                        headers,
+                        message.config
+                    ));
                 }
                 return Promise.all(promises);
             })
             .then(() => this);
+    }
+
+    log(message) {
+        if (this.logger && this.logger.log) {
+            this.logger.log(message);
+        }
     }
 }
 

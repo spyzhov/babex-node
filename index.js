@@ -1,11 +1,13 @@
 const errors = require('./src/errors');
 const {Service} = require('./src/service');
+const logger = require('./src/logger');
 
 const serviceConfig = {
     name: "",
     address: 'amqp://localhost',
     isSingle: true,
     skipDeclareQueue: false,
+    logger
 };
 
 /**
@@ -20,6 +22,7 @@ function newService(config) {
 
 module.exports = {
     newService,
+    Service,
     config: serviceConfig,
     errors,
 };

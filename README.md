@@ -10,7 +10,8 @@ Input message:
 ```
 {
   "data": Any,
-  "chain": [Path]
+  "chain": [Path],
+  "config": Any
 }
 ```
 
@@ -48,7 +49,8 @@ Request:
       "isMultiple": false,
       "successful": false
     }
-  ]
+  ],
+  "config": null
 }
 ```
 
@@ -96,6 +98,7 @@ Result:
       "isMultiple": false,
       "successful": false
     }
-  ]
+  ],
+  "config": null
 }
 ```

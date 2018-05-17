@@ -18,6 +18,7 @@ class Message {
         this.data = this.payload.data;
         this.chain = this.payload.chain.map((item) => new Path(item));
         this.headers = this.delivery.properties.headers || {};
+        this.config = this.payload.config || null;
     }
 
     /**
