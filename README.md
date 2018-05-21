@@ -1,6 +1,6 @@
 # About
 
-Имплементация протокола общения между сервисами, через очередь сообщений RabbitMQ.
+`Babex` is a modern solution for communications between microservices.
 
 # Versions
 
@@ -38,13 +38,13 @@ Request:
   },
   "chain": [
     {
-      "exchange": "Math",
+      "exchange": "math",
       "key": "sum",
       "isMultiple": false,
       "successful": false
     },
     {
-      "exchange": "Math",
+      "exchange": "math",
       "key": "sum.next",
       "isMultiple": false,
       "successful": false
@@ -56,10 +56,10 @@ Request:
 
 ```js
 const babex = require('babex-node');
-const exchange = 'Math';
+const exchange = 'math';
 const routingKey = 'sum';
 const config = babex.config;
-config.name = 'Math.sum';
+config.name = 'math.sum';
 config.address = process.env.RMQ_ADDRESS;
 
 babex
@@ -87,13 +87,13 @@ Result:
   },
   "chain": [
     {
-      "exchange": "Math",
+      "exchange": "math",
       "key": "sum",
       "isMultiple": false,
       "successful": true
     },
     {
-      "exchange": "Math",
+      "exchange": "math",
       "key": "sum.next",
       "isMultiple": false,
       "successful": false
