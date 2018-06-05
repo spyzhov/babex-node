@@ -7,7 +7,7 @@ const serviceConfig = {
     address: 'amqp://localhost',
     isSingle: true,
     skipDeclareQueue: false,
-    logger
+    logger: null,
 };
 
 /**
@@ -25,4 +25,5 @@ module.exports = {
     Service,
     config: serviceConfig,
     errors,
+    logger
 };

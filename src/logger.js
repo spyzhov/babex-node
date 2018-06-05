@@ -9,10 +9,5 @@ function get_logger(level) {
 }
 
 module.exports = {
-    log: get_logger('log'),
-    info: get_logger('info'),
-    warn: get_logger('warn'),
-    error: get_logger('error'),
-    debug: get_logger('debug'),
-    get_logger
+    log: get_logger('log')
 };

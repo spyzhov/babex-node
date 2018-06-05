@@ -40,14 +40,12 @@ Request:
     {
       "exchange": "math",
       "key": "sum",
-      "isMultiple": false,
-      "successful": false
+      "isMultiple": false
     },
     {
       "exchange": "math",
       "key": "sum.next",
-      "isMultiple": false,
-      "successful": false
+      "isMultiple": false
     }
   ],
   "config": null
