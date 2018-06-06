@@ -39,7 +39,7 @@ Request:
   "chain": [
     {
       "exchange": "math",
-      "key": "sum",
+      "key": "math.sum",
       "isMultiple": false
     },
     {
@@ -55,7 +55,7 @@ Request:
 ```js
 const babex = require('babex-node');
 const exchange = 'math';
-const routingKey = 'sum';
+const routingKey = 'math.sum';
 const config = babex.config;
 config.name = 'math.sum';
 config.address = process.env.RMQ_ADDRESS;

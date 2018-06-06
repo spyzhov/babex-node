@@ -1,4 +1,5 @@
 const {Path} = require('./path');
+const {toJSON} = require('./json');
 
 /**
  * Base message
@@ -14,7 +15,7 @@ class Message {
     constructor(channel, delivery) {
         this.channel = channel;
         this.delivery = delivery;
-        this.payload = JSON.parse(this.delivery.content.toString());
+        this.payload = toJSON(this.delivery.content);
         this.data = this.payload.data;
         this.chain = this.payload.chain.map((item) => new Path(item));
         this.headers = this.delivery.properties.headers || {};

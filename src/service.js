@@ -52,14 +52,14 @@ class Service {
      */
     listen(callback) {
         return this.channel.consume(this.name, (delivery) => {
-            if (delivery === null) {
+            if (delivery === null || !delivery.content) {
                 return;
             }
-            this.log(`receive message: ${delivery.content.toString()}`);
+            this.log(`receive message: ${delivery.content.length} bytes`);
             return Promise
                 .resolve(delivery)
                 .then((delivery) => new Message(this.channel, delivery))
-                .then(callback)
+                .then(callback);
         });
     }
 
