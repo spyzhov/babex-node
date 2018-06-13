@@ -160,8 +160,8 @@ class Service {
     }
 
     log(message) {
-        if (this.logger && this.logger.log) {
-            this.logger.log(message);
+        if (this.logger && this.logger.debug) {
+            this.logger.debug(message);
         }
     }
 }
