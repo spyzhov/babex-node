@@ -100,3 +100,8 @@ Result:
   "config": null
 }
 ```
+
+# Other languages
+
+* Golang - https://github.com/matroskin13/babex
+* Python - https://github.com/spyzhov/babex-py
